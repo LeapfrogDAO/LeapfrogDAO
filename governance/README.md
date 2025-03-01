@@ -190,23 +190,13 @@ const proposals = await governanceClient.getProposalsForRealm(realmPubkey);
 
 We welcome contributions to improve the LeapfrogDAO Governance Program! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
-## Security Audits
-
-The LeapfrogDAO Governance Program has undergone rigorous security audits:
-
-- Full program audit by [Audit Firm] completed on [Date]
-- Quadratic voting mechanism review by [Security Researcher] on [Date]
-- Ongoing bug bounty program available at [URL]
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Community and Support
 
-- [Discord](https://discord.gg/leapfrogdao)
-- [Forum](https://forum.leapfrogdao.org)
-- [Documentation](https://docs.leapfrogdao.org)
+- [Discord](https://discord.gg/leapfrog_89
 - [GitHub](https://github.com/leapfrogdao)
 
 ## Acknowledgments
