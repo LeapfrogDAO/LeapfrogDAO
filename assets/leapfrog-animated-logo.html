@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeapfrogDAO Animated Logo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #0a0a1a;
+            overflow: hidden;
+            font-family: sans-serif;
+        }
+
+        .logo-container {
+            position: relative;
+            width: 600px;
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        .grid-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transform: rotateX(60deg);
+            bottom: -40px;
+            z-index: -1;
+        }
+
+        .grid {
+            position: absolute;
+            width: 100%;
+            height: 200%;
+            background: 
+                linear-gradient(to right, rgba(126, 0, 231, 0.15) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(126, 0, 231, 0.15) 1px, transparent 1px);
+            background-size: 40px 40px;
+            transform-origin: center bottom;
+            animation: gridMove 10s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 0 80px;
+            }
+        }
+
+        .frame {
+            position: absolute;
+            width: 90%;
+            height: 90%;
+            border: 2px solid rgba(126, 0, 231, 0.3);
+            box-shadow: 0 0 15px rgba(126, 0, 231, 0.2), inset 0 0 15px rgba(126, 0, 231, 0.2);
+            z-index: -1;
+        }
+
+        .aurora {
+            position: absolute;
+            z-index: -1;
+            opacity: 0.6;
+            filter: blur(40px);
+        }
+
+        .aurora-1 {
+            top: 5%;
+            right: 10%;
+            width: 40%;
+            height: 40%;
+            background: radial-gradient(circle, #ff00ff 0%, transparent 70%);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .aurora-2 {
+            bottom: 25%;
+            left: 10%;
+            width: 35%;
+            height: 35%;
+            background: radial-gradient(circle, #00ffcc 0%, transparent 70%);
+            animation: float 15s ease-in-out 2s infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0);
+            }
+            25% {
+                transform: translate(10px, -10px);
+            }
+            50% {
+                transform: translate(0, -5px);
+            }
+            75% {
+                transform: translate(-10px, 10px);
+            }
+        }
+
+        .text {
+            position: absolute;
+            bottom: 60px;
+            font-family: 'Arial', sans-serif;
+            font-size: 52px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7),
+                         0 0 20px rgba(0, 255, 204, 0.5),
+                         0 0 30px rgba(0, 255, 204, 0.3);
+            letter-spacing: 1px;
+            animation: textGlow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes textGlow {
+            0% {
+                text-shadow: 0 0 10px rgba(255, 255, 255, 0.7),
+                            0 0 20px rgba(0, 255, 204, 0.5),
+                            0 0 30px rgba(0, 255, 204, 0.3);
+            }
+            100% {
+                text-shadow: 0 0 15px rgba(255, 255, 255, 0.9),
+                            0 0 25px rgba(0, 255, 204, 0.7),
+                            0 0 35px rgba(0, 255, 204, 0.5),
+                            0 0 45px rgba(0, 255, 204, 0.3);
+            }
+        }
+
+        #frog-wrapper {
+            position: relative;
+            width: 320px;
+            height: 280px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        #frog-shadow {
+            position: absolute;
+            bottom: -20px;
+            width: 180px;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.25);
+            border-radius: 50%;
+            filter: blur(10px);
+            z-index: -1;
+            transform-origin: center;
+        }
+
+        .eye {
+            animation: blink 4s infinite;
+        }
+
+        @keyframes blink {
+            0%, 95%, 98%, 100% {
+                transform: scaleY(1);
+            }
+            96%, 97% {
+                transform: scaleY(0.1);
+            }
+        }
+
+        .dots {
+            animation: glowPulse 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes glowPulse {
+            0% {
+                filter: brightness(1) saturate(1);
+            }
+            100% {
+                filter: brightness(1.3) saturate(1.4);
+            }
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background-color: white;
+            filter: blur(1px);
+            opacity: 0;
+            z-index: -1;
+        }
+
+        #sparkles > * {
+            position: absolute;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 0;
+                transform: scale(0.2);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <div class="grid-container">
+            <div class="grid"></div>
+        </div>
+        <div class="frame"></div>
+        <div class="aurora aurora-1"></div>
+        <div class="aurora aurora-2"></div>
+        
+        <div id="sparkles"></div>
+        
+        <div id="frog-wrapper">
+            <div id="frog-shadow"></div>
+            
+            <svg id="frog" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 250" width="300" height="250">
+                <!-- Main body - matching your image exactly -->
+                <g class="frog-body">
+                    <!-- Base frog shape with accurate contours -->
+                    <path d="M150 50 C100 40, 60 60, 40 100 C25 130, 25 160, 45 190 C65 220, 100 235, 150 235 C200 235, 235 220, 255 190 C275 160, 275 130, 260 100 C240 60, 200 40, 150 50Z" fill="#26de81" />
+                    
+                    <!-- Subtle belly highlight -->
+                    <path d="M150 90 C120 85, 95 95, 85 120 C75 145, 85 170, 110 190 C135 210, 165 210, 190 190 C215 170, 225 145, 215 120 C205 95, 180 85, 150 90Z" fill="#2eec8e" opacity="0.4" />
+                    
+                    <!-- Webbed feet - precise shape -->
+                    <path d="M65 170 L40 195 C35 200, 40 205, 45 203 C55 198, 65 185, 70 175 Z" fill="#20c972" />
+                    <path d="M235 170 L260 195 C265 200, 260 205, 255 203 C245 198, 235 185, 230 175 Z" fill="#20c972" />
+                    <path d="M90 210 L65 235 C60 240, 65 245, 70 243 C80 238, 90 225, 95 215 Z" fill="#20c972" />
+                    <path d="M210 210 L235 235 C240 240, 235 245, 230 243 C220 238, 210 225, 205 215 Z" fill="#20c972" />
+                </g>
+                
+                <!-- Eyes - positioned exactly like your image -->
+                <g>
+                    <!-- Left eye -->
+                    <circle cx="128" cy="68" r="11" fill="#ffdd00" />
+                    <circle class="eye" cx="128" cy="68" r="6" fill="#111" />
+                    <circle cx="130" cy="66" r="3" fill="#fff" />
+                    
+                    <!-- Right eye -->
+                    <circle cx="172" cy="68" r="11" fill="#ffdd00" />
+                    <circle class="eye" cx="172" cy="68" r="6" fill="#111" />
+                    <circle cx="174" cy="66" r="3" fill="#fff" />
+                </g>
+                
+                <!-- Spots pattern - correctly placed on the back on both sides -->
+                <g class="dots">
+                    <!-- Blue/purple dots placed on the back area in two rows -->
+                    <!-- Left side row -->
+                    <circle cx="120" cy="105" r="7" fill="#536dfe" />
+                    <circle cx="115" cy="125" r="8" fill="#7c4dff" />
+                    <circle cx="120" cy="145" r="7" fill="#536dfe" />
+                    <circle cx="115" cy="165" r="8" fill="#7c4dff" />
+                    
+                    <!-- Right side row -->
+                    <circle cx="180" cy="105" r="8" fill="#7c4dff" />
+                    <circle cx="185" cy="125" r="7" fill="#536dfe" />
+                    <circle cx="180" cy="145" r="8" fill="#7c4dff" />
+                    <circle cx="185" cy="165" r="7" fill="#536dfe" />
+                </g>
+                
+                <!-- Mouth line -->
+                <path d="M130 90 C140 95, 160 95, 170 90" fill="none" stroke="#20c972" stroke-width="2" />
+            </svg>
+        </div>
+        
+        <div class="text">LeapfrogDAO</div>
+    </div>
+
+    <script>
+        // Create sparkles throughout the scene
+        function createSparkles() {
+            const sparklesContainer = document.getElementById('sparkles');
+            const container = document.querySelector('.logo-container');
+            const containerRect = container.getBoundingClientRect();
+            
+            // Add more sparkles for better effect
+            for (let i = 0; i < 40; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                
+                // Randomize positions
+                const x = Math.random() * containerRect.width;
+                const y = Math.random() * containerRect.height;
+                
+                sparkle.style.left = `${x}px`;
+                sparkle.style.top = `${y}px`;
+                
+                // Randomize animations
+                sparkle.style.animationDelay = `${Math.random() * 3}s`;
+                sparkle.style.opacity = Math.random() * 0.5;
+                
+                sparklesContainer.appendChild(sparkle);
+            }
+        }
+        
+        // Create the realistic frog animation
+        function animateFrog() {
+            const frogWrapper = document.getElementById('frog-wrapper');
+            const frog = document.getElementById('frog');
+            const shadow = document.getElementById('frog-shadow');
+            
+            // Apply initial glow to the frog
+            frog.style.filter = 'drop-shadow(0 0 15px rgba(38, 222, 129, 0.7))';
+            
+            // Animated properties
+            let y = 0;
+            let scale = 1;
+            let shadowScale = 1;
+            let shadowOpacity = 0.25;
+            
+            // Create frog hop animation
+            function update() {
+                // Time-based animations
+                const time = Date.now() / 1000;
+                const hopCycle = time % 4; // 4-second hop cycle
+                
+                // Vertical movement with realistic physics
+                if (hopCycle < 0.2) { // Quick launch (5% of cycle)
+                    const progress = hopCycle / 0.2;
+                    y = -30 * progress;
+                    scale = 1 - 0.05 * progress;
+                    shadowScale = 1 - 0.3 * progress;
+                    shadowOpacity = 0.25 - 0.15 * progress;
+                } 
+                else if (hopCycle < 1.2) { // Hang/float time (25% of cycle)
+                    // Add subtle bobbing while in the air
+                    const floatProgress = (hopCycle - 0.2);
+                    y = -30 + Math.sin(floatProgress * Math.PI * 2) * 5;
+                    scale = 0.95 + Math.sin(floatProgress * Math.PI) * 0.03;
+                    shadowScale = 0.7;
+                    shadowOpacity = 0.1;
+                } 
+                else if (hopCycle < 1.4) { // Land (5% of cycle)
+                    const progress = (hopCycle - 1.2) / 0.2;
+                    y = -30 * (1 - progress);
+                    scale = 0.95 + 0.05 * progress;
+                    shadowScale = 0.7 + 0.3 * progress;
+                    shadowOpacity = 0.1 + 0.15 * progress;
+                } 
+                else { // Rest (65% of cycle) with breathing
+                    const restProgress = (hopCycle - 1.4) / 2.6;
+                    y = 0;
+                    // Subtle breathing
+                    scale = 1 + Math.sin(restProgress * Math.PI * 3) * 0.02;
+                    shadowScale = 1;
+                    shadowOpacity = 0.25;
+                }
+                
+                // Apply transformations
+                frogWrapper.style.transform = `translateY(${y}px)`;
+                frog.style.transform = `scale(${scale})`;
+                shadow.style.transform = `scale(${shadowScale}, 1)`;
+                shadow.style.opacity = shadowOpacity;
+                
+                // Continue animation loop
+                requestAnimationFrame(update);
+            }
+            
+            // Start the animation loop
+            update();
+        }
+        
+        // Create pulse effect for the grid
+        function animateGrid() {
+            const grid = document.querySelector('.grid');
+            
+            // Subtly change grid opacity
+            setInterval(() => {
+                const opacity = 0.15 + Math.sin(Date.now() / 2000) * 0.05;
+                grid.style.background = `
+                    linear-gradient(to right, rgba(126, 0, 231, ${opacity}) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(126, 0, 231, ${opacity}) 1px, transparent 1px)
+                `;
+            }, 50);
+        }
+        
+        // Initialize everything when the page loads
+        window.onload = () => {
+            createSparkles();
+            animateFrog();
+            animateGrid();
+        };
+    </script>
+</body>
+</html>
