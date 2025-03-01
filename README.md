@@ -1,4 +1,10 @@
 # LeapfrogDAO White Paper
+<div align="center">
+  <a href="assets/leapfrog-animated-logo.html">
+    <img src="path/to/static/logo.png" alt="LeapfrogDAO Logo" width="300">
+  </a>
+  <p>Click the logo to view the animated version</p>
+</div>
 ## Hacking the Future: Building a Decentralized World of Freedom, Justice, and Empowerment
 
 **Version 2.0**  
