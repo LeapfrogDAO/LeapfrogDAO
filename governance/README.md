@@ -1,7 +1,5 @@
 # LeapfrogDAO Governance Program
 
-<div align="center">
-  <img src="https://via.placeholder.com/200x200.png?text=LeapfrogDAO" alt="LeapfrogDAO Logo" width="200" height="200">
   <h3>Decentralized Governance for a More Equitable Digital World</h3>
   
   [![Solana](https://img.shields.io/badge/Solana-Blockchain-14F195?style=for-the-badge&logo=solana&logoColor=white)](https://solana.com/)
