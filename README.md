@@ -137,15 +137,9 @@ The LeapfrogDAO token is deeply integrated with our governance program, providin
 
 ## Contributing
 
-We welcome contributions to the LeapfrogDAO ecosystem! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more information.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+We welcome contributions to the LeapfrogDAO ecosystem! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more informatio
 
 ## Connect With Us
-
-
 
 - [Twitter](https://twitter.com/leapfrog_89
 - [GitHub](https://github.com/leapfrogdao)
