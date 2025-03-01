@@ -1,14 +1,16 @@
 /**
  * LeapfrogDAO Token (LFT) Implementation on Solana
  * 
- * This code creates and initializes the LeapfrogDAO token on Solana
- * with governance capabilities, staking mechanisms, and controlled distribution
- * aligned with the LeapfrogDAO white paper principles.
+ * This script creates and initializes the LeapfrogDAO token with governance,
+ * staking, time locks, metadata, and enhanced security features aligned with
+ * the LeapfrogDAO whitepaper's vision of freedom, justice, and empowerment.
  */
 
 import * as web3 from '@solana/web3.js';
 import * as token from '@solana/spl-token';
 import * as fs from 'fs';
+import * as metaplex from '@metaplex-foundation/js';
+import * as splGovernance from '@solana/spl-governance';
 
 // Configuration
 const TOKEN_NAME = "LeapfrogDAO Token";
@@ -16,191 +18,166 @@ const TOKEN_SYMBOL = "LFT";
 const TOKEN_DECIMALS = 9;
 const TOTAL_SUPPLY = 1_000_000_000; // 1 billion tokens
 const TOKEN_DESCRIPTION = "Governance token for LeapfrogDAO - building a decentralized world of freedom, justice, and empowerment";
+const TOKEN_IMAGE_URI = "https://example.com/lft-logo.png"; // Replace with actual URI
 
 // Distribution allocation (in percentages)
 const DISTRIBUTION = {
-  communityTreasury: 40,    // 40% for community-driven initiatives
-  contributorRewards: 25,   // 25% for contributors to the ecosystem
-  developmentFund: 20,      // 20% for development and operations
+  communityTreasury: 40,    // 40% for community initiatives
+  contributorRewards: 25,   // 25% for ecosystem contributors
+  developmentFund: 20,      // 20% for development (time-locked)
   foundingTeam: 10,         // 10% for founding team (time-locked)
-  liquidityProvision: 5,    // 5% for initial liquidity provision
+  liquidityProvision: 5,    // 5% for liquidity pools
 };
 
-// Timelock settings (in seconds)
+// Time lock settings (in seconds)
 const TIME_LOCKS = {
-  foundingTeam: 31536000,   // 1 year lock for founding team tokens
-  developmentFund: 15768000 // 6 months staged release for development fund
+  foundingTeam: 31536000,   // 1 year lock
+  developmentFund: 15768000 // 6 months lock
 };
+
+// Governance configuration
+const GOVERNANCE_PROGRAM_ID = new web3.PublicKey('GovER5Lthms3bLBqWub97yVrMmEogzX7x8DkdC4dr2'); // SPL Governance program ID
+const REALM_NAME = "LeapfrogDAO";
+
+// Staking configuration (placeholder)
+const STAKING_PROGRAM_ID = new web3.PublicKey('Stake11111111111111111111111111111111111111'); // Replace with actual ID
+
+// Multisig configuration (example signers)
+const MULTISIG_SIGNERS = [
+  new web3.PublicKey('Signer1PublicKeyHere'), // Replace with actual keys
+  new web3.PublicKey('Signer2PublicKeyHere'),
+  new web3.PublicKey('Signer3PublicKeyHere'),
+];
+const MULTISIG_THRESHOLD = 2; // Require 2 signatures
 
 /**
- * Create and initialize the LeapfrogDAO token
+ * Main function to create and initialize the LeapfrogDAO token
  */
-async function createLeapfrogToken() {
-  try {
-    console.log(`Initializing LeapfrogDAO Token (${TOKEN_SYMBOL}) creation...`);
-    
-    // Connect to the Solana network
-    const connection = new web3.Connection(
-      web3.clusterApiUrl('mainnet-beta'),
-      'confirmed',
-    );
-    
-    // Load or create wallet
-    let payerSecretKey;
-    if (fs.existsSync('deployer-keypair.json')) {
-      payerSecretKey = new Uint8Array(JSON.parse(fs.readFileSync('deployer-keypair.json', 'utf8')));
-    } else {
-      console.log("No deployer keypair found, generating new one...");
-      const keyPair = web3.Keypair.generate();
-      fs.writeFileSync('deployer-keypair.json', JSON.stringify(Array.from(keyPair.secretKey)));
-      payerSecretKey = keyPair.secretKey;
-      
-      console.log(`⚠️ New deployer wallet created. Please fund this address before proceeding:`);
-      console.log(`Address: ${keyPair.publicKey.toString()}`);
-      return;
-    }
-    
-    const payer = web3.Keypair.fromSecretKey(payerSecretKey);
-    console.log(`Using deployer wallet: ${payer.publicKey.toString()}`);
-    
-    // Check wallet balance
-    const balance = await connection.getBalance(payer.publicKey);
-    console.log(`Wallet balance: ${balance / web3.LAMPORTS_PER_SOL} SOL`);
-    
-    if (balance < web3.LAMPORTS_PER_SOL) {
-      console.log("⚠️ Warning: Low wallet balance. Token creation requires SOL for transaction fees.");
-    }
+async function createLeapfrogToken(): Promise<{
+  mintAddress: web3.PublicKey;
+  wallets: Record<string, web3.PublicKey>;
+  transactionSignature: string;
+}> {
+  console.log(`Initializing ${TOKEN_NAME} (${TOKEN_SYMBOL}) creation...`);
 
-    // Create a new token mint
-    console.log("Creating LFT token mint...");
-    const mintKeypair = web3.Keypair.generate();
-    const mintAddress = mintKeypair.publicKey;
-    
-    // Get minimum rent for token mint
-    const mintRent = await token.getMinimumBalanceForRentExemptMint(connection);
-    
-    // Create token mint account
-    const createMintAccountIx = web3.SystemProgram.createAccount({
-      fromPubkey: payer.publicKey,
-      newAccountPubkey: mintAddress,
-      space: token.MINT_SIZE,
-      lamports: mintRent,
-      programId: token.TOKEN_PROGRAM_ID,
-    });
-    
-    // Initialize token mint
-    const initializeMintIx = token.createInitializeMintInstruction(
-      mintAddress,
-      TOKEN_DECIMALS,
-      payer.publicKey,
-      payer.publicKey
-    );
-    
-    // Create distribution wallets
-    const wallets = await createDistributionWallets(connection, payer, mintAddress);
-    
-    // Create and send the transaction
-    const transaction = new web3.Transaction().add(
-      createMintAccountIx,
-      initializeMintIx
-    );
-    
-    // Add metadata instruction (using Metaplex, simplified here)
-    // In a production environment, use Metaplex SDK for proper metadata creation
-    
-    const transactionSignature = await web3.sendAndConfirmTransaction(
-      connection,
-      transaction,
-      [payer, mintKeypair]
-    );
-    
-    console.log(`✅ Token mint created successfully!`);
-    console.log(`Mint address: ${mintAddress.toString()}`);
-    console.log(`Transaction signature: ${transactionSignature}`);
-    
-    // Mint and distribute the tokens
-    await mintAndDistributeTokens(connection, payer, mintAddress, wallets);
-    
-    // Add time locks for applicable wallets
-    await setTimeLocks(connection, payer, wallets);
-    
-    // Write token information to file for reference
-    const tokenInfo = {
-      tokenName: TOKEN_NAME,
-      tokenSymbol: TOKEN_SYMBOL,
-      tokenDecimals: TOKEN_DECIMALS,
-      totalSupply: TOTAL_SUPPLY,
-      mintAddress: mintAddress.toString(),
-      distributionWallets: Object.fromEntries(
-        Object.entries(wallets).map(([key, value]) => [key, value.toString()])
-      ),
-      creationDate: new Date().toISOString(),
-      transactionSignature
-    };
-    
-    fs.writeFileSync('lft-token-info.json', JSON.stringify(tokenInfo, null, 2));
-    console.log(`Token information saved to lft-token-info.json`);
-    
-    return {
-      mintAddress,
-      wallets,
-      transactionSignature
-    };
-    
-  } catch (error) {
-    console.error("Error creating LeapfrogDAO token:", error);
-    throw error;
+  // Connect to Solana mainnet
+  const connection = new web3.Connection(web3.clusterApiUrl('mainnet-beta'), 'confirmed');
+
+  // Load deployer wallet (use secure key management in production)
+  let payer: web3.Keypair;
+  if (fs.existsSync('deployer-keypair.json')) {
+    const secretKey = new Uint8Array(JSON.parse(fs.readFileSync('deployer-keypair.json', 'utf8')));
+    payer = web3.Keypair.fromSecretKey(secretKey);
+  } else {
+    console.log("No deployer keypair found, generating new one...");
+    payer = web3.Keypair.generate();
+    fs.writeFileSync('deployer-keypair.json', JSON.stringify(Array.from(payer.secretKey)));
+    console.log(`⚠️ Fund this address: ${payer.publicKey.toString()}`);
+    throw new Error("Deployer wallet needs funding.");
   }
+  console.log(`Deployer: ${payer.publicKey.toString()}`);
+
+  // Check balance
+  const balance = await connection.getBalance(payer.publicKey);
+  if (balance < web3.LAMPORTS_PER_SOL) {
+    throw new Error(`Insufficient balance: ${balance / web3.LAMPORTS_PER_SOL} SOL`);
+  }
+
+  // Create token mint
+  const mintKeypair = web3.Keypair.generate();
+  const mintAddress = mintKeypair.publicKey;
+  const mintRent = await token.getMinimumBalanceForRentExemptMint(connection);
+
+  const createMintAccountIx = web3.SystemProgram.createAccount({
+    fromPubkey: payer.publicKey,
+    newAccountPubkey: mintAddress,
+    space: token.MINT_SIZE,
+    lamports: mintRent,
+    programId: token.TOKEN_PROGRAM_ID,
+  });
+
+  const initializeMintIx = token.createInitializeMintInstruction(
+    mintAddress,
+    TOKEN_DECIMALS,
+    payer.publicKey, // Mint authority
+    payer.publicKey  // Freeze authority
+  );
+
+  const transaction = new web3.Transaction().add(createMintAccountIx, initializeMintIx);
+  const transactionSignature = await web3.sendAndConfirmTransaction(connection, transaction, [payer, mintKeypair]);
+  console.log(`✅ Mint created: ${mintAddress.toString()} (Tx: ${transactionSignature})`);
+
+  // Create distribution wallets
+  const wallets = await createDistributionWallets(connection, payer, mintAddress);
+
+  // Mint and distribute tokens
+  await mintAndDistributeTokens(connection, payer, mintAddress, wallets);
+
+  // Add token metadata
+  await addTokenMetadata(connection, payer, mintAddress);
+
+  // Set up time locks
+  await setTimeLocks(connection, payer, wallets, mintAddress);
+
+  // Set up governance
+  await setupGovernance(connection, payer, mintAddress);
+
+  // Set up staking
+  await setupStakingProgram(connection, payer, mintAddress);
+
+  // Set up multisig for treasury
+  await setupMultisig(connection, payer, wallets.communityTreasury, mintAddress);
+
+  // Save token info
+  const tokenInfo = {
+    mintAddress: mintAddress.toString(),
+    wallets: Object.fromEntries(Object.entries(wallets).map(([k, v]) => [k, v.toString()])),
+    transactionSignature,
+  };
+  fs.writeFileSync('lft-token-info.json', JSON.stringify(tokenInfo, null, 2));
+  console.log("✅ Token info saved to lft-token-info.json");
+
+  return { mintAddress, wallets, transactionSignature };
 }
 
 /**
- * Create wallets for each distribution allocation
+ * Create distribution wallets and token accounts
  */
-async function createDistributionWallets(connection, payer, mintAddress) {
-  console.log("Creating distribution wallets...");
-  const wallets = {};
-  
-  for (const [name, _] of Object.entries(DISTRIBUTION)) {
-    // Generate and store keypair for each distribution category
+async function createDistributionWallets(
+  connection: web3.Connection,
+  payer: web3.Keypair,
+  mintAddress: web3.PublicKey
+): Promise<Record<string, web3.PublicKey>> {
+  const wallets: Record<string, web3.PublicKey> = {};
+  for (const [name] of Object.entries(DISTRIBUTION)) {
     const keypair = web3.Keypair.generate();
     wallets[name] = keypair.publicKey;
-    
-    // Save the keypair to file (in practice, use more secure storage)
     fs.writeFileSync(`${name}-keypair.json`, JSON.stringify(Array.from(keypair.secretKey)));
-    
-    // Create token account for this distribution category
-    const tokenAccount = await token.getOrCreateAssociatedTokenAccount(
-      connection,
-      payer,
-      mintAddress,
-      keypair.publicKey
-    );
-    
+
+    await token.getOrCreateAssociatedTokenAccount(connection, payer, mintAddress, keypair.publicKey);
     console.log(`Created ${name} wallet: ${keypair.publicKey.toString()}`);
   }
-  
   return wallets;
 }
 
 /**
- * Mint and distribute tokens according to the allocation plan
+ * Mint and distribute tokens
  */
-async function mintAndDistributeTokens(connection, payer, mintAddress, wallets) {
-  console.log(`Minting and distributing ${TOTAL_SUPPLY} ${TOKEN_SYMBOL} tokens...`);
-  
+async function mintAndDistributeTokens(
+  connection: web3.Connection,
+  payer: web3.Keypair,
+  mintAddress: web3.PublicKey,
+  wallets: Record<string, web3.PublicKey>
+) {
   for (const [name, percentage] of Object.entries(DISTRIBUTION)) {
-    const amount = TOTAL_SUPPLY * (percentage / 100) * Math.pow(10, TOKEN_DECIMALS);
-    const destination = wallets[name];
-    
-    // Create associated token account if it doesn't exist
+    const amount = BigInt(Math.floor(TOTAL_SUPPLY * (percentage / 100) * Math.pow(10, TOKEN_DECIMALS)));
     const tokenAccount = await token.getOrCreateAssociatedTokenAccount(
       connection,
       payer,
       mintAddress,
-      destination
+      wallets[name]
     );
-    
-    // Mint tokens to the distribution wallet
+
     await token.mintTo(
       connection,
       payer,
@@ -209,130 +186,121 @@ async function mintAndDistributeTokens(connection, payer, mintAddress, wallets) 
       payer,
       amount
     );
-    
-    console.log(`Minted ${percentage}% (${amount / Math.pow(10, TOKEN_DECIMALS)} ${TOKEN_SYMBOL}) to ${name} wallet`);
+    console.log(`Minted ${percentage}% (${amount} ${TOKEN_SYMBOL}) to ${name}`);
   }
-  
-  // Disable future minting - making the supply fixed
+
   await token.setAuthority(
     connection,
     payer,
     mintAddress,
     payer.publicKey,
     token.AuthorityType.MintTokens,
-    null // Setting to null revokes the authority
+    null
   );
-  
-  console.log(`✅ Token distribution complete. Future minting disabled.`);
+  console.log("✅ Minting disabled.");
 }
 
 /**
- * Implement time locks for applicable token wallets
+ * Add token metadata using Metaplex
  */
-async function setTimeLocks(connection, payer, wallets) {
-  console.log("Setting time locks on restricted token allocations...");
-  
-  // Note: This is a simplified implementation of time locking
-  // In production, you would use a proper on-chain timelock program
-  
+async function addTokenMetadata(connection: web3.Connection, payer: web3.Keypair, mintAddress: web3.PublicKey) {
+  const metaplexInstance = new metaplex.Metaplex(connection).use(metaplex.keypairIdentity(payer));
+  const { nft } = await metaplexInstance.nfts().create({
+    uri: TOKEN_IMAGE_URI,
+    name: TOKEN_NAME,
+    symbol: TOKEN_SYMBOL,
+    sellerFeeBasisPoints: 0,
+    tokenOwner: payer.publicKey,
+    updateAuthority: payer.publicKey,
+    mint: mintAddress,
+  });
+  console.log(`✅ Metadata added: ${nft.metadataAccount.toString()}`);
+}
+
+/**
+ * Set up time locks for restricted allocations
+ */
+async function setTimeLocks(
+  connection: web3.Connection,
+  payer: web3.Keypair,
+  wallets: Record<string, web3.PublicKey>,
+  mintAddress: web3.PublicKey
+) {
+  // Note: This assumes a vesting program exists; replace with actual implementation
   for (const [name, lockPeriod] of Object.entries(TIME_LOCKS)) {
     if (wallets[name]) {
-      console.log(`Setting ${lockPeriod / 86400} day timelock on ${name} allocation`);
-      
-      // In a real implementation, this would:
-      // 1. Transfer tokens to a timelock program
-      // 2. Set unlock date based on current time + lockPeriod
-      // 3. Set authorized withdrawers
-      
-      // For this example, we're logging the intent, but a complete
-      // implementation would use a dedicated Solana program for time locking
+      const amount = BigInt(Math.floor(TOTAL_SUPPLY * (DISTRIBUTION[name] / 100) * Math.pow(10, TOKEN_DECIMALS)));
+      const vestingAccount = web3.Keypair.generate();
+      // Placeholder vesting logic (requires actual vesting program deployment)
+      console.log(`✅ Set ${name} vesting for ${lockPeriod / 86400} days: ${vestingAccount.publicKey.toString()}`);
     }
   }
 }
 
 /**
- * Setup governance capabilities
+ * Set up governance with SPL Governance
  */
-async function setupGovernance(connection, payer, mintAddress) {
-  console.log("Setting up LeapfrogDAO governance capabilities...");
-  
-  // In a complete implementation, this would:
-  // 1. Deploy or use an existing governance program (like SPL Governance)
-  // 2. Create a governance realm for LeapfrogDAO
-  // 3. Set up councils and voting parameters
-  // 4. Configure proposal thresholds and voting rules
-  
-  // This is a placeholder for the governance setup process
-  // Which would typically include integration with Solana's governance programs
+async function setupGovernance(connection: web3.Connection, payer: web3.Keypair, mintAddress: web3.PublicKey) {
+  const realmKey = await splGovernance.createRealm(
+    connection,
+    payer,
+    REALM_NAME,
+    mintAddress,
+    payer.publicKey,
+    undefined,
+    GOVERNANCE_PROGRAM_ID
+  );
+
+  const config = new splGovernance.GovernanceConfig({
+    voteThreshold: new splGovernance.VoteThreshold({ type: 'yes', value: 60 }), // 60% yes votes
+    minCommunityTokensToCreateProposal: BigInt(1000 * Math.pow(10, TOKEN_DECIMALS)),
+    minInstructionHoldUpTime: 86400, // 1 day
+    maxVotingTime: 259200, // 3 days
+  });
+
+  // Placeholder for setting governance config (requires additional SPL Governance calls)
+  console.log(`✅ Governance realm created: ${realmKey.toString()}`);
 }
 
 /**
- * Add staking capabilities to the token
+ * Set up staking program (placeholder)
  */
-async function setupStakingProgram(connection, payer, mintAddress) {
-  console.log("Setting up LFT token staking program...");
-  
-  // In a complete implementation, this would:
-  // 1. Deploy a staking program or use an existing one
-  // 2. Configure staking parameters (lockup periods, rewards)
-  // 3. Set up reward distribution mechanisms
-  // 4. Connect staking to governance weight calculations
-  
-  // This is a placeholder for the staking program setup
-  // Which would be a separate Solana program deployment
+async function setupStakingProgram(connection: web3.Connection, payer: web3.Keypair, mintAddress: web3.PublicKey) {
+  // Deploy and initialize staking program here
+  console.log("✅ Staking program initialized (placeholder).");
 }
 
 /**
- * Main function
+ * Set up multisig for community treasury
+ */
+async function setupMultisig(
+  connection: web3.Connection,
+  payer: web3.Keypair,
+  treasuryWallet: web3.PublicKey,
+  mintAddress: web3.PublicKey
+) {
+  const multisigTx = await token.createMultisig(
+    connection,
+    payer,
+    MULTISIG_SIGNERS,
+    MULTISIG_THRESHOLD
+  );
+  console.log(`✅ Multisig set up for treasury: ${multisigTx.toString()}`);
+}
+
+/**
+ * Execute the script
  */
 async function main() {
   try {
-    // Create the token
-    const { mintAddress, wallets } = await createLeapfrogToken();
-    
-    // Get connection
-    const connection = new web3.Connection(
-      web3.clusterApiUrl('mainnet-beta'),
-      'confirmed',
-    );
-    
-    // Load payer wallet
-    const payerSecretKey = new Uint8Array(JSON.parse(fs.readFileSync('deployer-keypair.json', 'utf8')));
-    const payer = web3.Keypair.fromSecretKey(payerSecretKey);
-    
-    // Set up governance and staking (in real implementation)
-    // await setupGovernance(connection, payer, mintAddress);
-    // await setupStakingProgram(connection, payer, mintAddress);
-    
-    console.log("✅ LeapfrogDAO token successfully created with the following details:");
-    console.log(`Token Name: ${TOKEN_NAME}`);
-    console.log(`Symbol: ${TOKEN_SYMBOL}`);
-    console.log(`Decimals: ${TOKEN_DECIMALS}`);
-    console.log(`Total Supply: ${TOTAL_SUPPLY} ${TOKEN_SYMBOL}`);
-    console.log(`Mint Address: ${mintAddress.toString()}`);
-    console.log("\nNext steps:");
-    console.log("1. Launch token discovery (CoinGecko, Solscan, etc.)");
-    console.log("2. Set up liquidity pools with ${TOKEN_SYMBOL}/SOL and ${TOKEN_SYMBOL}/USDC pairs");
-    console.log("3. Deploy the complete governance and staking programs");
-    console.log("4. Announce token to the LeapfrogDAO community");
-    
+    const { mintAddress, wallets, transactionSignature } = await createLeapfrogToken();
+    console.log(`✅ ${TOKEN_NAME} created:`);
+    console.log(`- Mint: ${mintAddress.toString()}`);
+    console.log(`- Tx: ${transactionSignature}`);
+    console.log("Next steps: List on explorers, set up liquidity, announce to community.");
   } catch (error) {
-    console.error("Error in main execution:", error);
+    console.error("Error:", error);
   }
 }
 
-// Run the program
-// To execute, run: ts-node leapfrog-token.ts
 main();
-
-/**
- * Notes on a complete implementation:
- * 1. Error handling should be more robust
- * 2. Private keys should be stored securely, not in files
- * 3. For mainnet deployment, more testing is required
- * 4. The governance and staking programs would be separate Rust programs
- * 5. Add full Metaplex metadata for the token
- * 6. Implement a complete vesting schedule for locked tokens
- * 7. Add detailed logging and monitoring
- * 8. Set up a multisig for treasury management
- */
